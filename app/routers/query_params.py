@@ -52,7 +52,7 @@ class CommonQueryParams:
                     '(`fullContent` field in the result).<br><br>'
                 )
             ),
-        ] = False,
+        ] = True,
         stealth: Annotated[
             bool,
             Query(
@@ -62,7 +62,7 @@ class CommonQueryParams:
                     '(https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-stealth/evasions)<br><br>'
                 )
             ),
-        ] = False,
+        ] = True,
         screenshot: Annotated[
             bool,
             Query(
@@ -135,7 +135,7 @@ class BrowserQueryParams:
                             'Pass 0 to disable the timeout.<br><br>',
                 ge=0,
             ),
-        ] = 60000,
+        ] = 10000,
         wait_until: Annotated[
             WaitUntilEnum,
             Query(

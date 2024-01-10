@@ -46,11 +46,11 @@ async def favicon():
 async def root(request: Request):
     for_example = (
         'cache=yes',
-        'full-content=no',
-        'stealth=no',
+        'full-content=yes',
+        'stealth=yes',
         'screenshot=no',
         'incognito=yes',
-        'timeout=60000',
+        'timeout=10000',
         'wait-until=domcontentloaded',
         'sleep=0',
         'viewport-width=414',
