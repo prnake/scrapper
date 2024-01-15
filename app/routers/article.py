@@ -93,22 +93,21 @@ async def parse_article(
     browser: Browser = request.state.browser
     semaphore: asyncio.Semaphore = request.state.semaphore
 
-    async def acquire_semaphore():
+    async def acquire_semaphore(context):
         try:
             await asyncio.wait_for(semaphore.acquire(), timeout=0.5)
-            async with new_context(browser, browser_params, proxy_params) as context:
-                page = await context.new_page()
-                await page_processing(
-                    page=page,
-                    url=url.url,
-                    params=common_params,
-                    browser_params=browser_params,
-                    # init_scripts=[READABILITY_SCRIPT],
-                )
-                page_content = await page.content()
-                # screenshot = await get_screenshot(page) if common_params.screenshot else None
-                page_url = page.url
-                return page_content, page_url
+            page = await context.new_page()
+            await page_processing(
+                page=page,
+                url=url.url,
+                params=common_params,
+                browser_params=browser_params,
+                # init_scripts=[READABILITY_SCRIPT],
+            )
+            page_content = await page.content()
+            # screenshot = await get_screenshot(page) if common_params.screenshot else None
+            page_url = page.url
+            return page_content, page_url
         except Exception as e:
             traceback.print_exc()
         finally:
@@ -117,10 +116,12 @@ async def parse_article(
     
     page_content = None
 
-    try:
-        page_content, page_url = await asyncio.wait_for(acquire_semaphore(), timeout=30)
-    except asyncio.TimeoutError:
-        raise article_parsing_error(url.url, "browswer context timeout")
+    async with new_context(browser, browser_params, proxy_params) as context:
+        try:
+            page_content, page_url = await asyncio.wait_for(acquire_semaphore(context), timeout=30)
+        except:
+            traceback.print_exc()
+    
     if not page_content:
         raise article_parsing_error(url.url, "no page content")
 
