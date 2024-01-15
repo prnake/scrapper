@@ -1,12 +1,13 @@
 import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from fastapi.requests import Request
 from pydantic import BaseModel
 from playwright.async_api import Browser
 
 from version import revision
+from settings import BROWSER_CONTEXT_LIMIT
 
 
 router = APIRouter(tags=['misc'])
@@ -32,4 +33,8 @@ async def ping(request: Request) -> PingData:
         'now': datetime.datetime.utcnow(),
         'revision': revision,
     }
+
+    if r["contexts"] == int(BROWSER_CONTEXT_LIMIT):
+        raise HTTPException(status_code=500, detail="Too many active browser contexts")
+    
     return PingData(**r)
