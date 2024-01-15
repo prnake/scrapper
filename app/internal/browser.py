@@ -92,7 +92,11 @@ async def page_processing(
 
     # navigate to the given url
     # noinspection PyTypeChecker
-    await page.goto(url, timeout=browser_params.timeout, wait_until=browser_params.wait_until)
+    page_timeout = False
+    try:
+        await page.goto(url, timeout=browser_params.timeout, wait_until=browser_params.wait_until)
+    except:
+        page_timeout = True
 
     # wait for the given timeout in milliseconds and scroll down the page
     n = 10
@@ -116,6 +120,8 @@ async def page_processing(
     # wait for the given timeout in milliseconds after user scripts were injected.
     if params.user_scripts_timeout:
         await page.wait_for_timeout(params.user_scripts_timeout)
+    
+    return page_timeout
 
 
 def resource_blocker(whitelist: Sequence[str]):  # list of resource types to allow

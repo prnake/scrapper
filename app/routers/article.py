@@ -93,34 +93,34 @@ async def parse_article(
     browser: Browser = request.state.browser
     semaphore: asyncio.Semaphore = request.state.semaphore
 
-    async def acquire_semaphore(context):
+    async def browser_fetch(context):
         try:
-            await asyncio.wait_for(semaphore.acquire(), timeout=0.5)
             page = await context.new_page()
-            await page_processing(
+            page_timeout = await page_processing(
                 page=page,
                 url=url.url,
                 params=common_params,
                 browser_params=browser_params,
-                # init_scripts=[READABILITY_SCRIPT],
             )
             page_content = await page.content()
-            # screenshot = await get_screenshot(page) if common_params.screenshot else None
             page_url = page.url
-            return page_content, page_url
+            return page_content, page_url, page_timeout
         except Exception as e:
             traceback.print_exc()
-        finally:
-            semaphore.release()
         return None, None
     
     page_content = None
 
-    async with new_context(browser, browser_params, proxy_params) as context:
-        try:
-            page_content, page_url = await asyncio.wait_for(acquire_semaphore(context), timeout=30)
-        except:
-            traceback.print_exc()
+    try:
+        await asyncio.wait_for(semaphore.acquire(), timeout=0.5)
+        async with new_context(browser, browser_params, proxy_params) as context:
+            try:
+                page_content, page_url, page_timeout = await asyncio.wait_for(browser_fetch(context), timeout=30)
+            except:
+                traceback.print_exc()
+        semaphore.release()
+    except:
+        raise article_parsing_error(url.url, "no page content")
     
     if not page_content:
         raise article_parsing_error(url.url, "no page content")
@@ -164,7 +164,8 @@ async def parse_article(
     #     )
 
     # save result to disk
-    cache.dump_result(article, key=r_id, screenshot=None)
+    if not page_timeout:
+        cache.dump_result(article, key=r_id, screenshot=None)
     return Article(**article)
 
 

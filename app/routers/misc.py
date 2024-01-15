@@ -34,9 +34,9 @@ async def ping(request: Request) -> PingData:
         'revision': revision,
     }
 
-    if r["contexts"] >= int(BROWSER_CONTEXT_LIMIT):
-        raise HTTPException(status_code=500, detail="Too many active browser contexts")
-    if not r["isConnected"]:
-        raise HTTPException(status_code=500, detail="Browser disconnected")
+    # if r["contexts"] >= int(BROWSER_CONTEXT_LIMIT):
+    #     raise HTTPException(status_code=500, detail="Too many active browser contexts")
+    # if not r["isConnected"]:
+    #     raise HTTPException(status_code=500, detail="Browser disconnected")
     
     return PingData(**r)
